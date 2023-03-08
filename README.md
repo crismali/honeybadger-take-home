@@ -52,6 +52,21 @@ curl -XPOST -H "Content-type: application/json" -d '{
 
 In order to run a non-Spam Notification, run the following in your terminal:
 
+```
+curl -XPOST -H "Content-type: application/json" -d '{
+  "RecordType": "Bounce",
+  "MessageStream": "outbound",
+  "Type": "HardBounce",
+  "TypeCode": 1,
+  "Name": "Hard bounce",
+  "Tag": "Test",
+  "Description": "The server was unable to deliver your message (ex: unknown user, mailbox not found).",
+  "Email": "arthur@example.com",
+  "From": "notifications@honeybadger.io",
+  "BouncedAt": "2019-11-05T16:33:54.9070259Z"
+}' 'http://0.0.0.0:8787/notify'
+```
+
 ## Deployment
 
 To deploy to the worker, run `npm run deploy`. You'll also need to add the `SLACK_TOKEN` and `SLACK_CHANNEL`
