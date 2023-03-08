@@ -8,19 +8,12 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-export interface Env {
-  // Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
-  // MY_KV_NAMESPACE: KVNamespace;
-  //
-  // Example binding to Durable Object. Learn more at https://developers.cloudflare.com/workers/runtime-apis/durable-objects/
-  // MY_DURABLE_OBJECT: DurableObjectNamespace;
-  //
-  // Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
-  // MY_BUCKET: R2Bucket;
-  //
-  // Example binding to a Service. Learn more at https://developers.cloudflare.com/workers/runtime-apis/service-bindings/
-  // MY_SERVICE: Fetcher;
-}
+import { forwardSpamNotification } from "./forwardSpamNotification";
+import { Env, SpamNotification, SPAM_NOTIFICATION_TYPE_CODE } from "./types";
+
+const POST = "POST";
+const PATH = "/notify";
+const TYPE_CODE: keyof SpamNotification = "TypeCode";
 
 export default {
   async fetch(
@@ -28,6 +21,43 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    return new Response("Hello World!");
+    const url = new URL(request.url);
+
+    if (request.method !== POST || url.pathname !== PATH) {
+      return errorResponse(404, "No route matches the request");
+    }
+    let json: object | undefined | SpamNotification;
+
+    try {
+      json = await request.json();
+    } catch (error: any) {
+      return errorResponse(400, "Invalid request body");
+    }
+
+    if (isSpamNotification(json)) {
+      await forwardSpamNotification(json, env);
+      return successfulResponse(true);
+    } else {
+      return successfulResponse(false);
+    }
   },
+};
+
+const successfulResponse = (isSpam: boolean): Response => {
+  return new Response(JSON.stringify({ isSpam, success: true }), {
+    status: 200,
+  });
+};
+
+const errorResponse = (status: number, message: string) => {
+  return new Response(JSON.stringify({ message }), { status });
+};
+
+const isSpamNotification = (suspect: unknown): suspect is SpamNotification => {
+  return (
+    suspect !== null &&
+    typeof suspect === "object" &&
+    TYPE_CODE in suspect &&
+    suspect.TypeCode === SPAM_NOTIFICATION_TYPE_CODE
+  );
 };
