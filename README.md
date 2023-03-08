@@ -11,6 +11,8 @@ in the `package.json` as `npm run start` and `npm run deploy` respectively.
 
 The tests can be run with `npm run test` which uses [Vitest](https://vitest.dev/) under the hood.
 
+This worker only accepts `POST` requests at `/notify`.
+
 ## Installation
 
 (The following assumes you already have Node and NPM installed)
@@ -27,7 +29,10 @@ You can get the channel ID by exploring the Slack API programmatically or by tak
 segment of the url you receive when you go to share a channel in Slack.
 
 The `SLACK_TOKEN` is the Slack OAuth token for your bot/app. _Note:_ It must have the `chat:write`
-permission scope for this worker to work correctly.
+permission scope for this worker to work correctly. See the documentation for
+[posting messages in Slack](https://api.slack.com/methods/chat.postMessage).
+
+If you don't already have a Slack bot/app setup, [there is documentation here.](https://api.slack.com/authentication/basics)
 
 ## Local Development
 
@@ -66,6 +71,9 @@ curl -XPOST -H "Content-type: application/json" -d '{
   "BouncedAt": "2019-11-05T16:33:54.9070259Z"
 }' 'http://0.0.0.0:8787/notify'
 ```
+
+If you'd like to use something like Postman, be sure you're `POST`ing to `/notify` wherever the app is running
+(`http://0.0.0.0:8787` when running locally unless otherwise configured)
 
 ## Deployment
 
